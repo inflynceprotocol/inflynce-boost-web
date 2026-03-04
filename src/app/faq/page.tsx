@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Box, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -82,19 +83,7 @@ export default function FAQPage() {
         </Box>
       </Box>
 
-      <Box
-        component="footer"
-        sx={{
-          borderTop: 1,
-          borderColor: 'divider',
-          py: 2,
-          textAlign: 'center',
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Powered by Inflynce · Base network
-        </Typography>
-      </Box>
+      <Footer />
     </Box>
   );
 }

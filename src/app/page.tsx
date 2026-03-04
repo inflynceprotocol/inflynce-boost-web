@@ -5,6 +5,7 @@ import { BoostForm } from '@/components/BoostForm';
 import { MyBoosts } from '@/components/MyBoosts';
 import { EarnTab } from '@/components/EarnTab';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Box, Typography, Tabs, Tab } from '@mui/material';
 
 export default function Home() {
@@ -140,19 +141,7 @@ export default function Home() {
         )}
       </Box>
 
-      <Box
-        component="footer"
-        sx={{
-          borderTop: 1,
-          borderColor: 'divider',
-          py: 2,
-          textAlign: 'center',
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Powered by Inflynce · Base network
-        </Typography>
-      </Box>
+      <Footer />
 
     </Box>
   );
