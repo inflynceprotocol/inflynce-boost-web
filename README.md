@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Inflynce Boost Web
 
-## Getting Started
+Web app for creating open-type boost campaigns from a connected wallet. No Farcaster sign-in required.
 
-First, run the development server:
+## Features
+
+- Wallet connect (RainbowKit)
+- Pay $0.25 USDC campaign fee
+- Set cast URL, min mindshare, multiplier, max budget
+- Submit to `postBoostWeb` API
+
+## Setup
 
 ```bash
+npm install
+cp .env.example .env.local
+# Edit .env.local with NEXT_PUBLIC_API_URL and NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Env vars
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|----------|-------------|
+| `GRAPHQL_URL` | Hasura GraphQL endpoint (e.g. `http://localhost:8080/v1/graphql`). Used by Next.js rewrite: `/api/graphql` → `GRAPHQL_URL` |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect Cloud project ID |
+| `NEXT_PUBLIC_GRAPHQL_URL` | Optional. If set, client calls this directly instead of `/api/graphql` |
+| `NEXT_PUBLIC_INFLYNCE_ADDRESS` | Optional. USDC recipient for the $0.25 fee |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Design
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To align with Canva or Figma designs, share the design link and we can refine the UI.
