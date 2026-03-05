@@ -7,6 +7,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { config } from '@/lib/wagmi';
 import theme from '@/theme/theme';
+import { base } from 'wagmi/chains';
 import '@rainbow-me/rainbowkit/styles.css';
 
 const queryClient = new QueryClient();
@@ -22,7 +23,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <RainbowKitProvider theme={rainbowTheme}>
+          <RainbowKitProvider theme={rainbowTheme} initialChain={base}>
             {children}
           </RainbowKitProvider>
         </ThemeProvider>
