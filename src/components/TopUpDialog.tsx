@@ -134,9 +134,11 @@ export function TopUpDialog({
         },
       }}
     >
-      <DialogTitle>
+      <DialogTitle component="div">
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Top Up Your Spending</Typography>
+          <Box component="span" sx={{ fontSize: '1.25rem', fontWeight: 600 }}>
+            Top Up Your Spending
+          </Box>
           <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}>
             <CloseIcon />
           </IconButton>

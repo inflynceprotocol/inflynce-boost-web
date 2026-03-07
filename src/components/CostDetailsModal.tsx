@@ -33,6 +33,7 @@ export function CostDetailsModal({ open, onClose }: CostDetailsModalProps) {
       }}
     >
       <DialogTitle
+        component="div"
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -42,9 +43,9 @@ export function CostDetailsModal({ open, onClose }: CostDetailsModalProps) {
           pb: 2,
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
+        <Box component="span" sx={{ fontSize: '1.25rem', fontWeight: 600 }}>
           Cost Calculation Details
-        </Typography>
+        </Box>
         <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }} aria-label="Close">
           <CloseIcon />
         </IconButton>

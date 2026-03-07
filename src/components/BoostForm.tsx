@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
@@ -49,7 +49,8 @@ export function BoostForm() {
   const [castUrl, setCastUrl] = useState('');
   const [mindshare, setMindshare] = useState(0.003);
   const [multiplier, setMultiplier] = useState(1);
-  const [maxBudget, setMaxBudget] = useState(100);
+  const [budgetInput, setBudgetInput] = useState('5');
+  const maxBudget = parseFloat(budgetInput) || 0;
   const [step, setStep] = useState<'form' | 'approving' | 'paying' | 'creating'>('form');
   const [error, setError] = useState<string | null>(null);
   const [successSnackbar, setSuccessSnackbar] = useState<string | null>(null);
@@ -83,12 +84,10 @@ export function BoostForm() {
   const requiredBalance = BOOST_FEE_USD + maxBudget;
   const hasInsufficientAllowance = currentAllowance < MIN_ALLOWANCE_WEI;
   const hasInsufficientBalance = currentBalance < parseUnits(requiredBalance.toFixed(2), 6);
-
-  useEffect(() => {
-    if (address && !hasInsufficientAllowance) {
-      setMaxBudget((prev) => Math.min(prev, defaultMaxBudgetFromAllowance));
-    }
-  }, [address, defaultMaxBudgetFromAllowance, hasInsufficientAllowance]);
+  const requiredAllowanceWei = parseUnits(maxBudget.toString(), 6);
+  // Allow 1-unit tolerance for display rounding (e.g. 4.999999 shown as 5.00)
+  const hasInsufficientAllowanceForBudget =
+    maxBudget >= MIN_BUDGET_USD && currentAllowance < requiredAllowanceWei - 1n;
 
   useEffect(() => {
     setApproveAmount((prev) => Math.max(prev, Math.max(maxBudget, MIN_ALLOWANCE_USD)));
@@ -125,6 +124,11 @@ export function BoostForm() {
     setError(null);
     if (!address || !isValidLink) {
       setError(!isValidLink ? 'Enter a valid URL (must begin with https://)' : 'Connect wallet first');
+      return;
+    }
+
+    if (maxBudget < MIN_BUDGET_USD) {
+      setError(`Minimum budget is $${MIN_BUDGET_USD.toFixed(2)}.`);
       return;
     }
 
@@ -177,7 +181,7 @@ export function BoostForm() {
 
       setSuccessSnackbar('Campaign created!');
       setCastUrl('');
-      setMaxBudget(Math.max(MIN_BUDGET_USD, defaultMaxBudgetFromAllowance));
+      setBudgetInput(Math.max(MIN_BUDGET_USD, defaultMaxBudgetFromAllowance).toString());
       setStep('form');
       queryClient.invalidateQueries({ queryKey: ['readContract'] });
       refetchAllowance();
@@ -194,7 +198,7 @@ export function BoostForm() {
     !isValidLink ||
     hasInsufficientAllowance ||
     hasInsufficientBalance ||
-    currentAllowance < parseUnits(maxBudget.toString(), 6);
+    hasInsufficientAllowanceForBudget;
 
   // Step-based primary CTA (wireframe: Connect → Approve → Launch)
   const isConnectStep = !isConnected;
@@ -257,10 +261,14 @@ export function BoostForm() {
 
               <TextField
                 fullWidth
-                type="number"
+                type="text"
+                inputMode="decimal"
                 label={`Max. Budget (min. $${MIN_BUDGET_USD.toFixed(2)})`}
-                value={maxBudget}
-                onChange={(e) => setMaxBudget(Math.max(MIN_BUDGET_USD, Number(e.target.value)))}
+                value={budgetInput}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  setBudgetInput(raw);
+                }}
                 inputProps={{ min: MIN_BUDGET_USD, step: 1 }}
                 disabled={step !== 'form'}
                 helperText={
@@ -280,6 +288,29 @@ export function BoostForm() {
                   {hasInsufficientBalance && (
                     <Box component="span" sx={{ color: 'error.main', display: 'block', mt: 0.5 }}>
                       Need at least ${requiredBalance.toFixed(2)} USDC (fee + budget) to launch
+                    </Box>
+                  )}
+                  {hasInsufficientAllowanceForBudget && (
+                    <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Box component="span" sx={{ color: 'error.main' }}>
+                        Spending limit (${remainingAllowance.toFixed(2)}) is less than budget (${maxBudget}). Approve more.
+                      </Box>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          setApproveAmount(Math.max(approveAmount, maxBudget));
+                          setApproveModalOpen(true);
+                        }}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        Approve more
+                      </Button>
+                    </Box>
+                  )}
+                  {!isValidLink && isLaunchStep && (
+                    <Box component="span" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                      Enter a link above to boost
                     </Box>
                   )}
                 </Typography>

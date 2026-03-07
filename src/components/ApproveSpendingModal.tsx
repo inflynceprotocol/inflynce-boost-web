@@ -31,7 +31,7 @@ export function ApproveSpendingModal({
 }: ApproveSpendingModalProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Approve Spending</DialogTitle>
+      <DialogTitle component="div">Approve Spending</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Approve the Inflynce Boosts contract to spend USDC on your behalf. This is a standard
