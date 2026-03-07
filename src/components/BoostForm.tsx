@@ -87,7 +87,7 @@ export function BoostForm() {
   const requiredAllowanceWei = parseUnits(maxBudget.toString(), 6);
   // Allow 1-unit tolerance for display rounding (e.g. 4.999999 shown as 5.00)
   const hasInsufficientAllowanceForBudget =
-    maxBudget >= MIN_BUDGET_USD && currentAllowance < requiredAllowanceWei - 1n;
+    maxBudget >= MIN_BUDGET_USD && currentAllowance < requiredAllowanceWei - BigInt(1);
 
   useEffect(() => {
     setApproveAmount((prev) => Math.max(prev, Math.max(maxBudget, MIN_ALLOWANCE_USD)));
