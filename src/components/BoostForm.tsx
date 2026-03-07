@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -35,6 +36,7 @@ import {
   MINDSHARE_DURATION,
 } from '@/lib/constants';
 import { erc20Abi } from '@/lib/erc20';
+import { formatTxError } from '@/lib/formatTxError';
 import { ApproveSpendingModal } from './ApproveSpendingModal';
 import { CostDetailsModal } from './CostDetailsModal';
 
@@ -54,6 +56,7 @@ export function BoostForm() {
   const [costDetailsOpen, setCostDetailsOpen] = useState(false);
   const [approveAmount, setApproveAmount] = useState(Math.max(MIN_ALLOWANCE_USD, MIN_BUDGET_USD));
 
+  const queryClient = useQueryClient();
   const { writeContractAsync } = useWriteContract();
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -105,11 +108,13 @@ export function BoostForm() {
         functionName: 'approve',
         args: [BOOSTS_CONTRACT, amount],
       });
+      queryClient.invalidateQueries({ queryKey: ['readContract'] });
       await refetchAllowance();
       setApproveModalOpen(false);
       setStep('form');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Approve failed');
+      const msg = formatTxError(err);
+      if (msg) setError(msg);
       setStep('form');
     }
   }
@@ -173,10 +178,12 @@ export function BoostForm() {
       setCastUrl('');
       setMaxBudget(Math.max(MIN_BUDGET_USD, defaultMaxBudgetFromAllowance));
       setStep('form');
+      queryClient.invalidateQueries({ queryKey: ['readContract'] });
       refetchAllowance();
       refetchBalance();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = formatTxError(err);
+      if (msg) setError(msg);
       setStep('form');
     }
   }
@@ -265,6 +272,17 @@ export function BoostForm() {
                   endAdornment: <InputAdornment position="end">.00</InputAdornment>,
                 }}
               />
+
+              {isLaunchStep && address && (
+                <Typography variant="body2" color="text.secondary">
+                  Your balance: ${Number(formatUnits(currentBalance, 6)).toFixed(2)} USDC
+                  {hasInsufficientBalance && (
+                    <Box component="span" sx={{ color: 'error.main', display: 'block', mt: 0.5 }}>
+                      Need at least ${requiredBalance.toFixed(2)} USDC (fee + budget) to launch
+                    </Box>
+                  )}
+                </Typography>
+              )}
 
               {error && (
                 <Alert severity="error" onClose={() => setError(null)}>

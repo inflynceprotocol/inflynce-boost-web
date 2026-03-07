@@ -14,6 +14,7 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import CloseIcon from '@mui/icons-material/Close';
 import { formatUnits, parseUnits } from 'viem';
 import { useWriteContract } from 'wagmi';
@@ -21,6 +22,7 @@ import { useWaitForTransactionReceipt } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { USDC_BASE, BOOSTS_CONTRACT } from '@/lib/constants';
 import { erc20Abi } from '@/lib/erc20';
+import { formatTxError } from '@/lib/formatTxError';
 
 interface TopUpDialogProps {
   open: boolean;
@@ -48,20 +50,29 @@ export function TopUpDialog({
   const [isRevoking, setIsRevoking] = useState(false);
   const [hash, setHash] = useState<`0x${string}` | undefined>(undefined);
 
+  const queryClient = useQueryClient();
   const { writeContractAsync } = useWriteContract();
 
   const personalBalance = Number(formatUnits(currentAllowance ?? BigInt(0), 6));
 
   const { data: receipt } = useWaitForTransactionReceipt({ hash, chainId: base.id });
 
+  // Refresh allowance when dialog opens
+  useEffect(() => {
+    if (open) {
+      refetchAllowance();
+    }
+  }, [open, refetchAllowance]);
+
   useEffect(() => {
     if (receipt?.status === 'success') {
-      refetchAllowance();
+      void refetchAllowance();
+      queryClient.invalidateQueries({ queryKey: ['readContract'] });
       setHash(undefined);
       setIsApproving(false);
       setIsRevoking(false);
     }
-  }, [receipt, refetchAllowance]);
+  }, [receipt, refetchAllowance, queryClient]);
 
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, '');
@@ -87,7 +98,8 @@ export function TopUpDialog({
       });
       setHash(txHash);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Approve failed');
+      const msg = formatTxError(err);
+      if (msg) setError(msg);
       setIsApproving(false);
     }
   };
@@ -103,7 +115,8 @@ export function TopUpDialog({
       });
       setHash(txHash);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Revoke failed');
+      const msg = formatTxError(err);
+      if (msg) setError(msg);
       setIsRevoking(false);
     }
   };
