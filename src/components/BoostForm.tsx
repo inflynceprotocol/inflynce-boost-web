@@ -29,6 +29,7 @@ import {
   INFLYNCE_RECIPIENT,
   BOOSTS_CONTRACT,
   BOOST_FEE_USD,
+  BOOST_FEE_RAW,
   MIN_BUDGET_USD,
   MIN_ALLOWANCE_USD,
   MIN_COST_PER_ENGAGEMENT,
@@ -149,12 +150,12 @@ export function BoostForm() {
 
     setStep('paying');
     try {
-      const amount = parseUnits(BOOST_FEE_USD.toFixed(2), 6);
       const hash = await writeContractAsync({
         address: USDC_BASE,
         abi: erc20Abi,
         functionName: 'transfer',
-        args: [INFLYNCE_RECIPIENT, amount],
+        args: [INFLYNCE_RECIPIENT, BOOST_FEE_RAW],
+        chainId: base.id,
       });
       if (!hash) throw new Error('Transaction failed');
 
@@ -336,7 +337,7 @@ export function BoostForm() {
                 >
                   {step === 'paying' && 'Confirm payment...'}
                   {step === 'creating' && 'Creating campaign...'}
-                  {step === 'form' && 'Start Boosting'}
+                  {step === 'form' && `Start Boosting ($${BOOST_FEE_USD} fee)`}
                 </Button>
               )}
             </Stack>
