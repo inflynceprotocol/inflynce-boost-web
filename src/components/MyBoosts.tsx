@@ -476,11 +476,11 @@ export function MyBoosts({ onSwitchToBoost }: { onSwitchToBoost?: () => void }) 
             onClose={() => setSnackbar(null)}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           >
-            {snackbar && (
+            {snackbar ? (
               <Alert severity={snackbar.severity} onClose={() => setSnackbar(null)}>
                 {snackbar.message}
               </Alert>
-            )}
+            ) : undefined}
           </Snackbar>
         </>
       )}
