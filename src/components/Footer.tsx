@@ -9,8 +9,8 @@ import {
 } from '@mui/material';
 
 const SOCIAL_LINKS = [
-  { href: 'https://x.com/inflynceprotocol', label: 'X', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/x.svg' },
-  { href: 'https://farcaster.xyz/miniapps/TrnTSlXGbRDg/inflynce', label: 'Farcaster', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/farcaster.svg' },
+  { href: 'https://x.com/inflynceprotocol', label: 'X', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/x.svg', useNativeColor: false },
+  { href: 'https://farcaster.xyz/miniapps/TrnTSlXGbRDg/inflynce', label: 'Farcaster', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/farcaster.svg', useNativeColor: false },
   { href: 'https://base.app/app/miniapp.inflynce.com', label: 'Base', icon: '/base-logo.png', useNativeColor: true },
 ] as const;
 
