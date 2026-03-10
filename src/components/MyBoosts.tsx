@@ -34,6 +34,8 @@ import StopCircleIcon from '@mui/icons-material/StopCircle';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import EditIcon from '@mui/icons-material/Edit';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import InsightsIcon from '@mui/icons-material/Insights';
+import { BoostAnalyticsDialog } from '@/components/BoostAnalyticsDialog';
 import { keyframes } from '@mui/material/styles';
 import { getBoostsByWallet, type Boost } from '@/lib/getBoostsByWallet';
 import { updateBoostWeb } from '@/lib/updateBoostWeb';
@@ -84,6 +86,7 @@ function BoostCard({ boost, onStopBoost, onEditBoost }: BoostCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [stopDialogOpen, setStopDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [editBudgetInput, setEditBudgetInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -137,6 +140,7 @@ function BoostCard({ boost, onStopBoost, onEditBoost }: BoostCardProps) {
     <Paper
       sx={{
         p: 2,
+        position: 'relative',
         bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
@@ -195,6 +199,15 @@ function BoostCard({ boost, onStopBoost, onEditBoost }: BoostCardProps) {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
             <MenuItem
+              onClick={() => {
+                setAnalyticsOpen(true);
+                setMenuAnchor(null);
+              }}
+            >
+              <InsightsIcon sx={{ fontSize: 18, mr: 1 }} />
+              Analytics
+            </MenuItem>
+            <MenuItem
               component="a"
               href={boost.castUrl ?? '#'}
               target="_blank"
@@ -240,6 +253,38 @@ function BoostCard({ boost, onStopBoost, onEditBoost }: BoostCardProps) {
           ))}
         </AvatarGroup>
       </Box>
+
+      {/* Analytics button - bottom right */}
+      <Box sx={{ position: 'absolute', bottom: 8, right: 8 }}>
+        <IconButton
+          size="medium"
+          onClick={() => setAnalyticsOpen(true)}
+          sx={{
+            backgroundColor: 'rgba(255, 107, 0, 0.2)',
+            color: '#FF6B00',
+            borderRadius: '50%',
+            width: 40,
+            height: 40,
+            border: '1px solid rgba(255, 107, 0, 0.3)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 107, 0, 0.3)',
+              transform: 'scale(1.1)',
+            },
+            transition: 'all 0.2s ease-in-out',
+            boxShadow: '0 2px 8px rgba(255, 107, 0, 0.2)',
+          }}
+          title="View Analytics"
+          aria-label="View Analytics"
+        >
+          <InsightsIcon fontSize="medium" />
+        </IconButton>
+      </Box>
+
+      <BoostAnalyticsDialog
+        open={analyticsOpen}
+        onClose={() => setAnalyticsOpen(false)}
+        boostId={boost.id}
+      />
 
       {/* Stop Boost confirmation dialog */}
       <Dialog open={stopDialogOpen} onClose={() => !isSubmitting && setStopDialogOpen(false)}>
