@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useState } from 'react';
@@ -17,6 +17,14 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  InputAdornment,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
@@ -24,8 +32,12 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import EditIcon from '@mui/icons-material/Edit';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { keyframes } from '@mui/material/styles';
 import { getBoostsByWallet, type Boost } from '@/lib/getBoostsByWallet';
+import { updateBoostWeb } from '@/lib/updateBoostWeb';
+import { MIN_BUDGET_USD } from '@/lib/constants';
 
 const allocatingSpin = keyframes`
   0% { transform: rotate(0deg); }
@@ -62,8 +74,19 @@ function StatusIcon({ status }: { status: string | null }) {
   }
 }
 
-function BoostCard({ boost }: { boost: Boost }) {
+interface BoostCardProps {
+  boost: Boost;
+  onStopBoost: (boost: Boost) => Promise<void>;
+  onEditBoost: (boost: Boost, maxBudget: number) => Promise<void>;
+}
+
+function BoostCard({ boost, onStopBoost, onEditBoost }: BoostCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [stopDialogOpen, setStopDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editBudgetInput, setEditBudgetInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const agg = boost.boostRecastRecordsAggregate?.aggregate;
   const confirmedAgg = boost.boostRecastRecordsAggregateConfirmed?.aggregate;
   const spentUsd = formatSpent(confirmedAgg?.sum?.creatorTotalCost);
@@ -75,6 +98,40 @@ function BoostCard({ boost }: { boost: Boost }) {
   const avatarLetters = boost.creatorWallet
     ? boost.creatorWallet.slice(2, 4).toUpperCase()
     : 'CR';
+  const isActive = boost.boostStatus === 'active';
+
+  const handleStopClick = () => {
+    setMenuAnchor(null);
+    setStopDialogOpen(true);
+  };
+
+  const handleStopConfirm = async () => {
+    setIsSubmitting(true);
+    try {
+      await onStopBoost(boost);
+      setStopDialogOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    setMenuAnchor(null);
+    setEditBudgetInput(maxBudget.toFixed(2));
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    const val = parseFloat(editBudgetInput);
+    if (isNaN(val) || val < Math.max(spentUsd, MIN_BUDGET_USD)) return;
+    setIsSubmitting(true);
+    try {
+      await onEditBoost(boost, val);
+      setEditDialogOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Paper
@@ -144,8 +201,21 @@ function BoostCard({ boost }: { boost: Boost }) {
               rel="noopener noreferrer"
               onClick={() => setMenuAnchor(null)}
             >
+              <OpenInNewIcon sx={{ fontSize: 18, mr: 1 }} />
               View Link
             </MenuItem>
+            {isActive && (
+              <>
+                <MenuItem onClick={handleStopClick}>
+                  <StopCircleIcon sx={{ fontSize: 18, mr: 1 }} />
+                  Stop Boost
+                </MenuItem>
+                <MenuItem onClick={handleEditClick}>
+                  <EditIcon sx={{ fontSize: 18, mr: 1 }} />
+                  Edit
+                </MenuItem>
+              </>
+            )}
           </Menu>
         </Box>
       </Box>
@@ -170,17 +240,111 @@ function BoostCard({ boost }: { boost: Boost }) {
           ))}
         </AvatarGroup>
       </Box>
+
+      {/* Stop Boost confirmation dialog */}
+      <Dialog open={stopDialogOpen} onClose={() => !isSubmitting && setStopDialogOpen(false)}>
+        <DialogTitle>Stop Boost</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to stop this boost? You won&apos;t be able to resume it.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setStopDialogOpen(false)} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="error" onClick={handleStopConfirm} disabled={isSubmitting}>
+            {isSubmitting ? 'Stopping...' : 'Stop Boost'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Boost dialog */}
+      <Dialog open={editDialogOpen} onClose={() => !isSubmitting && setEditDialogOpen(false)}>
+        <DialogTitle>Edit Budget</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            You can increase or decrease the max budget. It cannot be less than what you&apos;ve already
+            spent (${spentUsd.toFixed(2)}).
+          </Typography>
+          <TextField
+            fullWidth
+            label="Max Budget"
+            type="text"
+            inputMode="decimal"
+            value={editBudgetInput}
+            onChange={(e) => setEditBudgetInput(e.target.value.replace(/[^0-9.]/g, ''))}
+            InputProps={{
+              startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              endAdornment: <InputAdornment position="end">.00</InputAdornment>,
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleEditSave}
+            disabled={
+              isSubmitting ||
+              parseFloat(editBudgetInput || '0') < Math.max(spentUsd, MIN_BUDGET_USD)
+            }
+          >
+            {isSubmitting ? 'Saving...' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }
 
 export function MyBoosts({ onSwitchToBoost }: { onSwitchToBoost?: () => void }) {
   const { address, isConnected } = useAccount();
+  const queryClient = useQueryClient();
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
+
   const { data: boosts, isLoading } = useQuery({
     queryKey: ['boosts', 'wallet', address],
     queryFn: () => getBoostsByWallet(address!),
     enabled: !!address && isConnected,
   });
+
+  const { mutateAsync: updateBoost } = useMutation({
+    mutationFn: updateBoostWeb,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['boosts', 'wallet', address] });
+    },
+  });
+
+  const handleStopBoost = async (boost: Boost) => {
+    if (!address) return;
+    try {
+      await updateBoost({ boostId: boost.id, creatorWallet: address, boostStatus: 'completed' });
+      setSnackbar({ message: 'Boost stopped successfully', severity: 'success' });
+    } catch (err) {
+      setSnackbar({
+        message: err instanceof Error ? err.message : 'Failed to stop boost',
+        severity: 'error',
+      });
+      throw err;
+    }
+  };
+
+  const handleEditBoost = async (boost: Boost, maxBudget: number) => {
+    if (!address) return;
+    try {
+      await updateBoost({ boostId: boost.id, creatorWallet: address, maxBudget });
+      setSnackbar({ message: 'Budget updated successfully', severity: 'success' });
+    } catch (err) {
+      setSnackbar({
+        message: err instanceof Error ? err.message : 'Failed to update budget',
+        severity: 'error',
+      });
+      throw err;
+    }
+  };
 
   const list = boosts ?? [];
   const totalSpent = list.reduce((sum, b) => {
@@ -295,11 +459,30 @@ export function MyBoosts({ onSwitchToBoost }: { onSwitchToBoost?: () => void }) 
           </Button>
         </Paper>
       ) : (
-        <Stack spacing={2}>
-          {list.map((boost) => (
-            <BoostCard key={boost.id} boost={boost} />
-          ))}
-        </Stack>
+        <>
+          <Stack spacing={2}>
+            {list.map((boost) => (
+              <BoostCard
+                key={boost.id}
+                boost={boost}
+                onStopBoost={handleStopBoost}
+                onEditBoost={handleEditBoost}
+              />
+            ))}
+          </Stack>
+          <Snackbar
+            open={!!snackbar}
+            autoHideDuration={4000}
+            onClose={() => setSnackbar(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            {snackbar && (
+              <Alert severity={snackbar.severity} onClose={() => setSnackbar(null)}>
+                {snackbar.message}
+              </Alert>
+            )}
+          </Snackbar>
+        </>
       )}
     </Box>
   );

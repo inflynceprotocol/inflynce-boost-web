@@ -239,11 +239,8 @@ export function BoostForm() {
                 }}
               />
 
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}
-                >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Minimum cost per engagement:
                   <IconButton
                     size="small"

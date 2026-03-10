@@ -11,7 +11,7 @@ import {
 const SOCIAL_LINKS = [
   { href: 'https://x.com/inflynceprotocol', label: 'X', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/x.svg' },
   { href: 'https://farcaster.xyz/miniapps/TrnTSlXGbRDg/inflynce', label: 'Farcaster', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/farcaster.svg' },
-  { href: 'https://base.org', label: 'Base', icon: 'https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/coinbase.svg' },
+  { href: 'https://base.app/app/miniapp.inflynce.com', label: 'Base', icon: '/base-logo.png', useNativeColor: true },
 ] as const;
 
 export function Footer() {
@@ -26,7 +26,7 @@ export function Footer() {
         borderTop: 1,
         borderColor: 'divider',
         bgcolor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
-        py: 3,
+        py: 1.5,
         px: 2,
       }}
     >
@@ -68,7 +68,7 @@ export function Footer() {
 
         {/* Right: Social icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {SOCIAL_LINKS.map(({ href, label, icon }) => (
+          {SOCIAL_LINKS.map(({ href, label, icon, useNativeColor }) => (
             <IconButton
               key={label}
               component="a"
@@ -79,10 +79,13 @@ export function Footer() {
               size="small"
               sx={{
                 color: 'text.secondary',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 '&:hover': {
                   color: 'primary.main',
                   bgcolor: 'rgba(255,107,0,0.1)',
-                  '& img': { filter: 'brightness(0) invert(1)' },
+                  ...(useNativeColor ? {} : { '& img': { filter: 'brightness(0) invert(1)' } }),
                 },
               }}
             >
@@ -93,7 +96,9 @@ export function Footer() {
                 sx={{
                   width: 20,
                   height: 20,
-                  filter: 'brightness(0) invert(0.8)',
+                  display: 'block',
+                  objectFit: 'contain',
+                  ...(useNativeColor ? { transform: 'translateY(-1px)' } : { filter: 'brightness(0) invert(0.8)' }),
                 }}
               />
             </IconButton>

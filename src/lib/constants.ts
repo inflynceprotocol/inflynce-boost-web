@@ -12,7 +12,7 @@ export const APPROVE_AMOUNT_OPTIONS = [5, 10, 25, 50, 100, 250, 500, 1000] as co
 /** App type for inflynce-boost-web (wallet-only, no Farcaster context) */
 export const APP_TYPE_WEB = 1;
 /** Miniapp URL for earning (Farcaster/Base App) */
-export const MINIAPP_URL = process.env.NEXT_PUBLIC_MINIAPP_URL || 'https://miniapp.inflynce.com';
+export const MINIAPP_URL = process.env.NEXT_PUBLIC_MINIAPP_URL || 'https://base.app/app/miniapp.inflynce.com';
 /** Farcaster miniapp direct link */
 export const FARCASTER_MINIAPP_URL = 'https://farcaster.xyz/miniapps/TrnTSlXGbRDg/inflynce';
 export const MINDSHARE_DURATION = 7;

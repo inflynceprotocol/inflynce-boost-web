@@ -61,12 +61,12 @@ export function Header() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 1.5, textDecoration: 'none', color: 'inherit' }}>
+              <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 3.5, textDecoration: 'none', color: 'inherit' }}>
                 <Box
                   component="img"
                   src="/logo.png"
                   alt="Inflynce"
-                  sx={{ width: 32, height: 32, objectFit: 'contain' }}
+                  sx={{ width: 32, height: 32, objectFit: 'contain', marginRight: 1 }}
                 />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   Inflynce Protocol

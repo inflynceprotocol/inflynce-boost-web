@@ -56,6 +56,14 @@ export function EarnTab() {
             href={MINIAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
+            startIcon={
+              <Box
+                component="img"
+                src="/base-logo.png"
+                alt="Base"
+                sx={{ width: 20, height: 20 }}
+              />
+            }
             endIcon={<OpenInNewIcon fontSize="small" />}
             sx={{
               borderColor: 'primary.main',
